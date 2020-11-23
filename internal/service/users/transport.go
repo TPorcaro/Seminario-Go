@@ -53,7 +53,32 @@ func makeEndpoints(s Service) []*endpoint{
 		path : "/users/login",
 		function: login(s),
 	})
+	list = append(list, &endpoint{
+		method : "POST",
+		path : "/users/changepassword/:id",
+		function: changePassword(s),
+	})
 	return list
+}
+func changePassword(s Service) gin.HandlerFunc{
+	return func (c*gin.Context){
+		var userData User
+		body:= c.Request.Body
+		x, _ := ioutil.ReadAll(body)
+		ID, _ := strconv.ParseInt(c.Param("id"), 6, 12)
+		json.Unmarshal([]byte(x), &userData)
+		if userData.Password != ""{
+			res, err := s.ChangePassword(ID, userData.Password)
+			c.JSON(http.StatusOK, gin.H{
+				"response" : res,
+				"error" : err,
+			})
+		}else{
+			c.JSON(http.StatusConflict, gin.H{
+				"error" : "Porfavor escriba una contraseña",
+			})		
+		}
+	}
 }
 func login(s Service) gin.HandlerFunc{
 	return func (c*gin.Context){
@@ -95,9 +120,15 @@ func registerUser(s Service) gin.HandlerFunc{
 		var userData User
 		json.Unmarshal([]byte(x), &userData)
 		user:= User{0,userData.Name,userData.Email,userData.Password}
-		c.JSON(http.StatusOK, gin.H{
-			"users": s.RegisterUser(user),
-		})
+		if user.Name != "" && user.Email != "" && user.Password != ""{
+			c.JSON(http.StatusCreated, gin.H{
+				"users": s.RegisterUser(user),
+			})
+		} else{
+			c.JSON(http.StatusConflict, gin.H{
+				"Error" : "Porfavor ingrese todos los campos",
+			})
+		}
 	}
 }
 func getAll(s Service) gin.HandlerFunc{

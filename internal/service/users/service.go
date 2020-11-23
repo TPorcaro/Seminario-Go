@@ -21,6 +21,7 @@ type Service interface {
 	GetByID(int64) (*User, string)
 	DeleteByID(int64) (string, error)
 	Login(string, string) (uuid.UUID, error)
+	ChangePassword(int64, string) (string, error)
 }
 type service struct {
 	db   *sqlx.DB
@@ -69,4 +70,16 @@ func (s service) Login(email string, pass string) (uuid.UUID,error){
 	}
 	token := uuid.NewV4()
 	return token, nil
-} 
+}
+func (s service) ChangePassword(id int64, newPass string)(string, error){
+	var user User
+	err := s.db.QueryRowx("SELECT * FROM users WHERE id = $1", id).StructScan(&user)
+	if user.Name==""{
+		return "No existe un usuario con ese mail", err
+	}
+	_, err = s.db.Exec("UPDATE users SET password = $1", newPass)
+	if err != nil{
+		return "Error al cambiar la contraseña", err
+	}
+	return "Su contraseña ha sido cambiada satisfactoriamente", nil
+}
