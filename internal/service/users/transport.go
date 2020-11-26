@@ -68,9 +68,8 @@ func changePassword(s Service) gin.HandlerFunc{
 		ID, _ := strconv.ParseInt(c.Param("id"), 6, 12)
 		json.Unmarshal([]byte(x), &userData)
 		if userData.Password != ""{
-			res, err := s.ChangePassword(ID, userData.Password)
+			 err := s.ChangePassword(ID, userData.Password)
 			c.JSON(http.StatusOK, gin.H{
-				"response" : res,
 				"error" : err,
 			})
 		}else{
@@ -99,17 +98,16 @@ func getByID(s Service) gin.HandlerFunc{
 		user, err := s.GetByID(ID)
 		c.JSON(http.StatusOK, gin.H{
 			"user": user,
-			"response" : err,
+			"error" : err,
 		})
 	}
 }
 func deleteByID(s Service) gin.HandlerFunc{
 	return func (c*gin.Context){
 		ID, _ := strconv.ParseInt(c.Param("id"), 6, 12) 
-		res, err := s.DeleteByID(ID)
+		 err := s.DeleteByID(ID)
 		c.JSON(http.StatusOK, gin.H{
-			"user": res,
-			"response": err,
+			"error": err,
 		})
 	}
 }
@@ -121,8 +119,10 @@ func registerUser(s Service) gin.HandlerFunc{
 		json.Unmarshal([]byte(x), &userData)
 		user:= User{0,userData.Name,userData.Email,userData.Password}
 		if user.Name != "" && user.Email != "" && user.Password != ""{
+			ID,err := s.RegisterUser(user) 
 			c.JSON(http.StatusCreated, gin.H{
-				"users": s.RegisterUser(user),
+				"ID": ID,
+				"err": err,
 			})
 		} else{
 			c.JSON(http.StatusConflict, gin.H{
